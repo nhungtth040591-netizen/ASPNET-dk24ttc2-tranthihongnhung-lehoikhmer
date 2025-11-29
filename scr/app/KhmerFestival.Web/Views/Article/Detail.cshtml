@@ -1,0 +1,204 @@
+﻿@using KhmerFestival.Web.Models
+@using System.Collections.Generic
+@model KhmerFestival.Web.Models.ViewModels.ArticleDetailViewModel
+
+@{
+    var article = Model.Article;
+    ViewData["Title"] = article?.Title ?? "Chi tiết bài viết";
+
+    // Danh sách bài viết nổi bật khác
+    var featuredArticles = ViewBag.FeaturedArticles as List<Article>;
+}
+
+@if (article == null)
+{
+    <div class="alert alert-warning">Không tìm thấy bài viết.</div>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-8">
+            <h1 class="mb-3">@article.Title</h1>
+
+            <p class="text-muted small mb-2">
+                <i class="fas fa-calendar-alt mr-1"></i>
+                @(article.PublishedDate?.ToString("dd/MM/yyyy") ?? article.CreatedAtUtc.ToString("dd/MM/yyyy"))
+
+                @if (article.Category != null)
+                {
+                    @($" • {article.Category.Name}")
+                }
+
+                @if (article.Festival != null)
+                {
+                    @($" • Lễ hội: {article.Festival.Name}")
+                }
+            </p>
+
+            @* Tóm tắt *@
+            @if (!string.IsNullOrEmpty(article.Summary))
+            {
+                <p class="lead">@article.Summary</p>
+            }
+
+            <hr />
+
+            @* Ảnh thumbnail chính của bài viết *@
+            @if (!string.IsNullOrEmpty(article.ThumbnailUrl))
+            {
+                <div class="mb-3 text-center">
+                    <img src="@article.ThumbnailUrl"
+                         alt="@article.Title"
+                         class="img-fluid rounded shadow-sm article-main-image" />
+                </div>
+            }
+
+            @* Nội dung chính (HTML) *@
+            @if (!string.IsNullOrEmpty(article.Content))
+            {
+                <div class="article-content">
+                    @Html.Raw(article.Content)
+                </div>
+            }
+            else
+            {
+                <p>Đang cập nhật nội dung bài viết.</p>
+            }
+
+            <hr />
+
+            @* Khu vực comment *@
+            <h4 class="mt-4">Bình luận</h4>
+
+            @if (Model.Comments != null && Model.Comments.Any())
+            {
+                <ul class="list-unstyled">
+                    @foreach (var c in Model.Comments)
+                    {
+                        <li class="media mb-3">
+                            <div class="media-body">
+                                <h6 class="mt-0 mb-1">
+                                    @(!string.IsNullOrEmpty(c.FullName) ? c.FullName : "Khách")
+                                    <small class="text-muted">
+                                        • @c.CreatedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                    </small>
+                                </h6>
+                                <p class="mb-0">@c.Content</p>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="text-muted">Chưa có bình luận nào.</p>
+            }
+
+            @* Form gửi bình luận *@
+            <h5 class="mt-4">Gửi bình luận</h5>
+            <form asp-action="PostComment" asp-controller="Article" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="articleId" value="@article.ArticleId" />
+
+                <div class="form-group">
+                    <label>Họ tên</label>
+                    <input type="text" name="fullName" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label>Email (tuỳ chọn)</label>
+                    <input type="email" name="email" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label>Nội dung</label>
+                    <textarea name="content" class="form-control" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Gửi bình luận</button>
+            </form>
+        </div>
+
+        <div class="col-md-4">
+            @* Bài viết liên quan *@
+            @if (Model.RelatedArticles != null && Model.RelatedArticles.Any())
+            {
+                <div class="card mb-4">
+                    <div class="card-header">
+                        Bài viết liên quan
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        @foreach (var ra in Model.RelatedArticles)
+                        {
+                            <li class="list-group-item">
+                                <a asp-controller="Article"
+                                   asp-action="Detail"
+                                   asp-route-slug="@ra.Slug">
+                                    @ra.Title
+                                </a>
+                                <div class="small text-muted">
+                                    @(ra.PublishedDate?.ToString("dd/MM/yyyy") ?? ra.CreatedAtUtc.ToString("dd/MM/yyyy"))
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            @* Bài viết nổi bật khác (có thumbnail) *@
+            @if (featuredArticles != null && featuredArticles.Any())
+            {
+                <div class="card mb-4">
+                    <div class="card-header">
+                        Bài viết nổi bật khác
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        @foreach (var fa in featuredArticles)
+                        {
+                            <li class="list-group-item">
+                                <div class="media">
+                                    @if (!string.IsNullOrEmpty(fa.ThumbnailUrl))
+                                    {
+                                        <a asp-controller="Article"
+                                           asp-action="Detail"
+                                           asp-route-slug="@fa.Slug">
+                                            <img src="@fa.ThumbnailUrl"
+                                                 alt="@fa.Title"
+                                                 class="mr-2 rounded article-sidebar-thumb" />
+                                        </a>
+                                    }
+                                    <div class="media-body">
+                                        <a asp-controller="Article"
+                                           asp-action="Detail"
+                                           asp-route-slug="@fa.Slug">
+                                            @fa.Title
+                                        </a>
+                                        <div class="small text-muted">
+                                            @(fa.PublishedDate?.ToString("dd/MM/yyyy") ?? fa.CreatedAtUtc.ToString("dd/MM/yyyy"))
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<style>
+    .article-main-image {
+        max-height: 320px;
+        width: 100%;
+        object-fit: cover;
+    }
+
+    .article-sidebar-thumb {
+        width: 64px;
+        height: 64px;
+        object-fit: cover;
+    }
+
+    .article-content img {
+        max-width: 100%;
+        height: auto;
+    }
+</style>

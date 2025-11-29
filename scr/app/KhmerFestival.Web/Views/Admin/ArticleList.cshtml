@@ -1,0 +1,69 @@
+﻿@model IEnumerable<KhmerFestival.Web.Models.Article>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý bài viết";
+}
+
+<div class="d-flex justify-content-between mb-3">
+    <h5 class="mb-0">Danh sách bài viết</h5>
+    <a asp-action="ArticleEdit" class="btn btn-sm btn-primary">
+        <i class="fas fa-plus mr-1"></i> Thêm bài viết
+    </a>
+</div>
+
+<table class="table table-bordered table-sm table-hover bg-white">
+    <thead class="thead-light">
+        <tr>
+            <th>#</th>
+            <th>Tiêu đề</th>
+            <th>Danh mục</th>
+            <th>Lễ hội</th>
+            <th>Ngày đăng</th>
+            <th>Trạng thái</th>
+            <th style="width: 140px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            var index = 1;
+        }
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@index</td>
+                <td>@item.Title</td>
+                <td>@item.Category?.Name</td>
+                <td>@item.Festival?.Name</td>
+                <td>
+                    @(item.PublishedDate?.ToString("dd/MM/yyyy") ?? "-")
+                </td>
+                <td>
+                    @if (item.IsPublished)
+                    {
+                        <span class="badge badge-success">Đã đăng</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-secondary">Nháp</span>
+                    }
+                </td>
+                <td class="text-right">
+                    <a asp-action="ArticleEdit" asp-route-id="@item.ArticleId"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <form asp-action="ArticleDelete" asp-route-id="@item.ArticleId"
+                          method="post" class="d-inline"
+                          onsubmit="return confirm('Xóa bài viết này?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            index++;
+        }
+    </tbody>
+</table>

@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using KhmerFestival.Web.Models;
 
 namespace KhmerFestival.Web
 {
@@ -24,6 +26,8 @@ namespace KhmerFestival.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -48,6 +52,17 @@ namespace KhmerFestival.Web
 
             app.UseEndpoints(endpoints =>
             {
+                // Map '/admin' to AccountController.Login by default, truy?n returnUrl
+                endpoints.MapControllerRoute(
+                    name: "admin",
+                    pattern: "admin",
+                    defaults: new { controller = "Account", action = "Login", returnUrl = "/Admin/Dashboard" });
+
+                endpoints.MapControllerRoute(
+                    name: "admin-actions",
+                    pattern: "admin/{action}",
+                    defaults: new { controller = "Account", action = "Login" });
+
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");

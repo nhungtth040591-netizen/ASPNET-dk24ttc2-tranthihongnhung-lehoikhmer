@@ -1,0 +1,205 @@
+﻿@model KhmerFestival.Web.Models.ViewModels.FestivalListViewModel
+
+@{
+    ViewData["Title"] = "Danh sách lễ hội";
+}
+
+<h1 class="display-4 mb-4 text-center">Lễ hội Khmer</h1>
+
+<!-- Bộ lọc & sắp xếp: gọn, nằm góc phải -->
+<div class="row mb-4">
+    <div class="col-md-12 d-flex justify-content-end">
+        <div class="form-inline">
+            <select class="form-control form-control-sm mr-2"
+                    id="monthFilter"
+                    style="min-width: 180px;">
+                <option value="">Tất cả tháng</option>
+                <option value="1">Tháng 1</option>
+                <option value="2">Tháng 2</option>
+                <option value="3">Tháng 3</option>
+                <option value="4">Tháng 4</option>
+                <option value="5">Tháng 5</option>
+                <option value="6">Tháng 6</option>
+                <option value="7">Tháng 7</option>
+                <option value="8">Tháng 8</option>
+                <option value="9">Tháng 9</option>
+                <option value="10">Tháng 10</option>
+                <option value="11">Tháng 11</option>
+                <option value="12">Tháng 12</option>
+            </select>
+
+            <select class="form-control form-control-sm"
+                    id="sortOrder"
+                    style="min-width: 200px;">
+                <option value="">Mặc định</option>
+                <option value="dateAsc">Thời gian (gần đầu năm)</option>
+                <option value="dateDesc">Thời gian (cuối năm)</option>
+                <option value="nameAsc">Tên A-Z</option>
+                <option value="nameDesc">Tên Z-A</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="row" id="festivalList">
+    @if (Model.Festivals == null || !Model.Festivals.Any())
+    {
+        <div class="col-12">
+            <p>Hiện chưa có lễ hội nào.</p>
+        </div>
+    }
+    else
+    {
+        foreach (var f in Model.Festivals)
+        {
+            var startText = f.StartDate?.ToString("dd/MM/yyyy") ?? "Đang cập nhật";
+            var endText = f.EndDate?.ToString("dd/MM/yyyy");
+            var locationName = f.Location?.Name ?? "Nhiều nơi";
+
+            // Tháng phục vụ filter client-side
+            var monthValue = f.StartDate?.Month ?? 0;
+
+            // Ảnh: ưu tiên ThumbnailUrl, fallback placeholder
+            var thumb = string.IsNullOrEmpty(f.ThumbnailUrl)
+            ? "/images/placeholders/festival-default.jpg"
+            : f.ThumbnailUrl;
+
+            <div class="col-sm-6 col-md-4 col-lg-3 mb-4 festival-item"
+                 data-month="@monthValue"
+                 data-name="@f.Name.ToLower()"
+                 data-start="@((f.StartDate ?? DateTime.MinValue).Ticks)">
+                <div class="card h-100 shadow-sm border-0 hover-shadow">
+                    <img src="@thumb"
+                         class="card-img-top"
+                         alt="@f.Name"
+                         style="height: 180px; object-fit: cover;" />
+
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title text-truncate" title="@f.Name">@f.Name</h5>
+
+                        <p class="card-text text-muted small mb-1">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            @startText
+                            @if (!string.IsNullOrEmpty(endText) && endText != startText)
+                            {
+                                @($" - {endText}")
+                            }
+                        </p>
+                        <p class="card-text text-muted small mb-2">
+                            <i class="fas fa-map-marker-alt mr-1"></i>@locationName
+                        </p>
+
+                        @if (!string.IsNullOrEmpty(f.ShortDescription))
+                        {
+                            <p class="card-text text-muted small">
+                                @(f.ShortDescription.Length > 80
+                                                    ? f.ShortDescription.Substring(0, 80) + "..."
+                                                    : f.ShortDescription)
+                </p>
+                                }
+
+                        <div class="mt-auto">
+                            <a asp-controller="Festival"
+                               asp-action="Detail"
+                               asp-route-slug="@f.Slug"
+                               class="btn btn-sm btn-outline-primary">
+                                Xem chi tiết
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@if (Model.TotalPages > 1)
+{
+    <nav aria-label="Phân trang lễ hội" class="mt-3">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(Model.PageNumber == 1 ? "disabled" : "")">
+                <a class="page-link"
+                   href="@Url.Action("Index", new { page = Model.PageNumber - 1 })"
+                   aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                    <a class="page-link"
+                       href="@Url.Action("Index", new { page = i })">
+                        @i
+                    </a>
+                </li>
+            }
+
+            <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : "")">
+                <a class="page-link"
+                   href="@Url.Action("Index", new { page = Model.PageNumber + 1 })"
+                   aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+}
+
+@section Scripts {
+    <script>
+        $(function () {
+            function applyFilters() {
+                var month = $('#monthFilter').val();
+                var sort = $('#sortOrder').val();
+
+                var $items = $('.festival-item');
+
+                // Filter theo tháng
+                $items.each(function () {
+                    var $item = $(this);
+                    var itemMonth = ($item.data('month') || '').toString();
+                    var visible = true;
+
+                    if (month && itemMonth !== month) {
+                        visible = false;
+                    }
+
+                    $item.toggle(visible);
+                });
+
+                // Sort client-side
+                if (sort) {
+                    var $visibleItems = $('.festival-item:visible').get();
+
+                    $visibleItems.sort(function (a, b) {
+                        var $a = $(a), $b = $(b);
+                        var nameA = ($a.data('name') || '').toString();
+                        var nameB = ($b.data('name') || '').toString();
+                        var startA = parseInt($a.data('start')) || 0;
+                        var startB = parseInt($b.data('start')) || 0;
+
+                        if (sort === 'nameAsc') return nameA.localeCompare(nameB);
+                        if (sort === 'nameDesc') return nameB.localeCompare(nameA);
+                        if (sort === 'dateAsc') return startA - startB;
+                        if (sort === 'dateDesc') return startB - startA;
+
+                        return 0;
+                    });
+
+                    $('#festivalList').html($visibleItems);
+                }
+            }
+
+            $('#monthFilter, #sortOrder').on('change', applyFilters);
+        });
+    </script>
+
+    <style>
+        .hover-shadow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+            transition: all .2s;
+        }
+    </style>
+}

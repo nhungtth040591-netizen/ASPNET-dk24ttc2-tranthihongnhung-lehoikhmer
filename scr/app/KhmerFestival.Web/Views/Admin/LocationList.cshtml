@@ -1,0 +1,54 @@
+﻿@model IEnumerable<KhmerFestival.Web.Models.Location>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý địa điểm";
+}
+
+<div class="d-flex justify-content-between mb-3">
+    <h5 class="mb-0">Danh sách địa điểm</h5>
+    <a asp-action="LocationEdit" class="btn btn-sm btn-primary">
+        <i class="fas fa-plus mr-1"></i> Thêm địa điểm
+    </a>
+</div>
+
+<table class="table table-bordered table-sm table-hover bg-white">
+    <thead class="thead-light">
+        <tr>
+            <th>#</th>
+            <th>Tên địa điểm</th>
+            <th>Cấp</th>
+            <th>Địa điểm cha</th>
+            <th style="width: 140px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            var index = 1;
+        }
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@index</td>
+                <td>@item.Name</td>
+                <td>@item.Level</td>
+                <td>@item.Parent?.Name</td>
+                <td class="text-right">
+                    <a asp-action="LocationEdit" asp-route-id="@item.LocationId"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <form asp-action="LocationDelete" asp-route-id="@item.LocationId"
+                          method="post" class="d-inline"
+                          onsubmit="return confirm('Xóa địa điểm này?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            index++;
+        }
+    </tbody>
+</table>

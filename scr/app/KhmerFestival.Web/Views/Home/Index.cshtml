@@ -1,8 +1,350 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@using KhmerFestival.Web.Models
+@model KhmerFestival.Web.Controllers.HomeIndexViewModel
+
+@{
+    ViewData["Title"] = "Lễ hội Khmer";
+
+    // Chọn 2 festival có ThumbnailUrl mới nhất để hiển thị banner
+    var bannerFestivals = (Model.FeaturedFestivals ?? new List<Festival>())
+        .Where(f => !string.IsNullOrEmpty(f.ThumbnailUrl))
+        .OrderByDescending(f => f.StartDate ?? f.CreatedAtUtc)
+        .Take(2)
+        .ToList();
+
+    // Banner 1
+    var banner1Img = bannerFestivals.Count > 0
+        ? bannerFestivals[0].ThumbnailUrl
+        : "/images/festivals/dua-bo.jpg";
+    var banner1Title = bannerFestivals.Count > 0
+        ? bannerFestivals[0].Name
+        : "Không gian văn hoá lễ hội Khmer";
+    var banner1Text = bannerFestivals.Count > 0
+        ? (string.IsNullOrEmpty(bannerFestivals[0].ShortDescription)
+            ? "Cùng khám phá nét đẹp truyền thống, tín ngưỡng và ẩm thực đặc sắc."
+            : bannerFestivals[0].ShortDescription)
+        : "Cùng khám phá nét đẹp truyền thống, tín ngưỡng và ẩm thực đặc sắc.";
+    var banner1Link = bannerFestivals.Count > 0
+        ? Url.Action("Detail", "Festival", new { slug = bannerFestivals[0].Slug })
+        : Url.Action("Index", "Festival");
+
+    // Banner 2
+    var banner2Img = bannerFestivals.Count > 1
+        ? bannerFestivals[1].ThumbnailUrl
+        : "/images/festivals/ok-om-bok.jpg";
+    var banner2Title = bannerFestivals.Count > 1
+        ? bannerFestivals[1].Name
+        : "Chol Chnam Thmay";
+    var banner2Text = bannerFestivals.Count > 1
+        ? (string.IsNullOrEmpty(bannerFestivals[1].ShortDescription)
+            ? "Tết cổ truyền của đồng bào Khmer, dịp sum vầy và gửi gắm ước nguyện."
+            : bannerFestivals[1].ShortDescription)
+        : "Tết cổ truyền của đồng bào Khmer, dịp sum vầy và gửi gắm ước nguyện.";
+    var banner2Link = bannerFestivals.Count > 1
+        ? Url.Action("Detail", "Festival", new { slug = bannerFestivals[1].Slug })
+        : Url.Action("Index", "Festival");
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<!-- Banner/Slider -->
+<div id="mainBanner" class="carousel slide mb-4" data-ride="carousel">
+    <ol class="carousel-indicators">
+        <li data-target="#mainBanner" data-slide-to="0" class="active"></li>
+        <li data-target="#mainBanner" data-slide-to="1"></li>
+    </ol>
+    <div class="carousel-inner rounded shadow-sm overflow-hidden">
+        <div class="carousel-item active">
+            <img src="@banner1Img" class="d-block w-100 banner-img" alt="@banner1Title">
+            <div class="carousel-caption custom-caption text-left">
+                <h2 class="h4 font-weight-bold mb-2">@banner1Title</h2>
+                <p class="mb-3">@banner1Text</p>
+                <a href="@banner1Link" class="btn btn-banner btn-primary">
+                    <i class="fas fa-gopuram mr-1"></i> Xem các lễ hội
+                </a>
+            </div>
+        </div>
+        <div class="carousel-item">
+            <img src="@banner2Img" class="d-block w-100 banner-img" alt="@banner2Title">
+            <div class="carousel-caption custom-caption text-left">
+                <h2 class="h4 font-weight-bold mb-2">@banner2Title</h2>
+                <p class="mb-3">@banner2Text</p>
+                <a href="@banner2Link" class="btn btn-banner btn-outline-light">
+                    <i class="fas fa-book-open mr-1"></i> Đọc bài viết
+                </a>
+            </div>
+        </div>
+    </div>
+    <a class="carousel-control-prev" href="#mainBanner" role="button" data-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="sr-only">Trước</span>
+    </a>
+    <a class="carousel-control-next" href="#mainBanner" role="button" data-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="sr-only">Sau</span>
+    </a>
 </div>
+
+<!-- Giới thiệu ngắn -->
+<div class="row mb-4">
+    <div class="col-md-8 mb-3">
+        <h3 class="mb-3">Về lễ hội Khmer</h3>
+        <p class="text-muted">
+            Lễ hội là một phần quan trọng trong đời sống văn hoá của đồng bào Khmer, gắn với chùa chiền, mùa vụ,
+            và các nghi thức tín ngưỡng truyền thống. Trang web này giúp bạn dễ dàng
+            tìm hiểu thông tin về các lễ hội, địa điểm tổ chức, ý nghĩa và những câu chuyện xung quanh.
+        </p>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="border rounded p-3 bg-white shadow-sm h-100">
+            <h5 class="mb-2"><i class="fas fa-bell mr-1 text-warning"></i> Lễ hội sắp diễn ra</h5>
+            @if (Model.UpcomingFestivals != null && Model.UpcomingFestivals.Any())
+            {
+                <ul class="list-unstyled mb-0 small">
+                    @foreach (var f in Model.UpcomingFestivals)
+                    {
+                        <li class="mb-2">
+                            <strong>@f.Name</strong><br />
+                            <span class="text-muted">
+                                @if (f.StartDate.HasValue)
+                                {
+                                    @f.StartDate.Value.ToString("dd/MM/yyyy")
+                                    if (f.EndDate.HasValue && f.EndDate != f.StartDate)
+                                    {
+                                        @(" - " + f.EndDate.Value.ToString("dd/MM/yyyy"))
+                                    }
+                                }
+                                else
+                                {
+                                    @:Thời gian: đang cập nhật
+                                }
+                                @if (f.Location != null)
+                                {
+                                    @(" • " + f.Location.Name)
+                                }
+                            </span>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="text-muted small mb-0">Hiện chưa có thông tin lễ hội sắp diễn ra.</p>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Lễ hội nổi bật -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Lễ hội nổi bật</h3>
+    <a href="@Url.Action("Index", "Festival")" class="btn btn-link p-0">Xem tất cả &raquo;</a>
+</div>
+
+<div class="row mb-4">
+    @if (Model.FeaturedFestivals == null || !Model.FeaturedFestivals.Any())
+    {
+        <div class="col-12">
+            <p class="text-muted">Hiện chưa có lễ hội nổi bật.</p>
+        </div>
+    }
+    else
+    {
+        foreach (var f in Model.FeaturedFestivals)
+        {
+            var thumb = string.IsNullOrEmpty(f.ThumbnailUrl)
+            ? "/images/festivals/dua-bo.jpg"
+            : f.ThumbnailUrl;
+
+            <div class="col-sm-6 col-md-4 mb-4">
+                <div class="card h-100 shadow-sm border-0 hover-shadow">
+                    <img src="@thumb" class="card-img-top thumb-fixed" alt="@f.Name" />
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">@f.Name</h5>
+                        @if (!string.IsNullOrEmpty(f.ShortDescription))
+                        {
+                            <p class="card-text text-muted small">
+                                @(f.ShortDescription.Length > 120
+                                                    ? f.ShortDescription.Substring(0, 120) + "..."
+                                                    : f.ShortDescription)
+                </p>
+                                }
+                        else if (!string.IsNullOrEmpty(f.Meaning))
+                        {
+                            <p class="card-text text-muted small">
+                                @(f.Meaning.Length > 120 ? f.Meaning.Substring(0, 120) + "..." : f.Meaning)
+                            </p>
+                        }
+
+                        <div class="mt-auto">
+                            <p class="mb-1 small text-muted">
+                                <i class="fas fa-calendar-alt mr-1"></i>
+                                @if (f.StartDate.HasValue)
+                                {
+                                    @f.StartDate.Value.ToString("dd/MM/yyyy")
+                                    if (f.EndDate.HasValue && f.EndDate != f.StartDate)
+                                    {
+                                        @(" - " + f.EndDate.Value.ToString("dd/MM/yyyy"))
+                                    }
+                                }
+                                else
+                                {
+                                    @:Thời gian: đang cập nhật
+                                }
+                            </p>
+                            @if (f.Location != null)
+                            {
+                                <p class="mb-2 small text-muted">
+                                    <i class="fas fa-map-marker-alt mr-1"></i>@f.Location.Name
+                                </p>
+                            }
+                            <a href="@Url.Action("Detail", "Festival", new { slug = f.Slug })"
+                               class="btn btn-sm btn-outline-primary">
+                                Xem chi tiết
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<!-- Bài viết mới nhất -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Bài viết mới nhất</h3>
+    <a href="@Url.Action("Index", "Article")" class="btn btn-link p-0">Xem tất cả &raquo;</a>
+</div>
+
+<div class="row mb-5">
+    @if (Model.LatestArticles == null || !Model.LatestArticles.Any())
+    {
+        <div class="col-12">
+            <p class="text-muted">Chưa có bài viết nào.</p>
+        </div>
+    }
+    else
+    {
+        foreach (var a in Model.LatestArticles)
+        {
+            var aThumb = string.IsNullOrEmpty(a.ThumbnailUrl)
+            ? "/images/placeholders/article-default.jpg"
+            : a.ThumbnailUrl;
+
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm border-0 hover-shadow">
+                    <img src="@aThumb" class="card-img-top thumb-fixed" alt="@a.Title" />
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">@a.Title</h5>
+                        @if (!string.IsNullOrEmpty(a.Summary))
+                        {
+                            <p class="card-text text-muted small">
+                                @(a.Summary.Length > 140 ? a.Summary.Substring(0, 140) + "..." : a.Summary)
+                            </p>
+                        }
+
+                        <div class="mt-auto">
+                            <p class="mb-1 small text-muted">
+                                <i class="fas fa-calendar-alt mr-1"></i>
+                                @(a.PublishedDate?.ToString("dd/MM/yyyy") ?? a.CreatedAtUtc.ToString("dd/MM/yyyy"))
+                                @if (a.Category != null)
+                                {
+                                    @(" • " + a.Category.Name)
+                                }
+                            </p>
+                            @if (a.Festival != null)
+                            {
+                                <p class="mb-2 small text-muted">
+                                    <i class="fas fa-flag mr-1"></i>@a.Festival.Name
+                                </p>
+                            }
+                            <a href="@Url.Action("Detail", "Article", new { slug = a.Slug })"
+                               class="btn btn-sm btn-outline-primary">
+                                Đọc bài viết
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<!-- Các khối thông tin thêm -->
+<div class="row my-5">
+    <div class="col-md-4 text-center mb-3">
+        <i class="fas fa-book-open fa-2x mb-2 text-primary"></i>
+        <h5>Tìm hiểu văn hoá</h5>
+        <p class="text-muted">
+            Hệ thống bài viết giới thiệu nguồn gốc, ý nghĩa và nghi thức trong từng lễ hội Khmer.
+        </p>
+    </div>
+    <div class="col-md-4 text-center mb-3">
+        <i class="fas fa-map-marked-alt fa-2x mb-2 text-success"></i>
+        <h5>Khám phá địa điểm</h5>
+        <p class="text-muted">
+            Tra cứu nhanh các chùa, phum sóc, địa điểm tổ chức lễ hội theo tỉnh/thành.
+        </p>
+    </div>
+    <div class="col-md-4 text-center mb-3">
+        <i class="fas fa-envelope-open-text fa-2x mb-2 text-info"></i>
+        <h5>Kết nối & góp ý</h5>
+        <p class="text-muted">
+            Bạn có thể gửi thêm thông tin, hình ảnh hoặc góp ý qua trang liên hệ.
+        </p>
+        <a href="@Url.Action("Index", "Contact")" class="btn btn-sm btn-outline-info">
+            Liên hệ với chúng tôi
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // JS thêm nếu cần
+    </script>
+}
+
+<style>
+    /* Banner fixed height + không vỡ hình */
+    #mainBanner .banner-img {
+        height: 420px;
+        object-fit: cover;
+    }
+
+    @@media (max-width: 768px) {
+        #mainBanner .banner-img {
+            height: 260px;
+        }
+    }
+
+    /* Caption mờ + blur nhẹ */
+    #mainBanner .custom-caption {
+        background: rgba(0, 0, 0, 0.55);
+        border-radius: 0.75rem;
+        padding: 1rem 1.25rem;
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+    }
+
+    .btn-banner {
+        border-radius: 999px;
+        padding: 0.35rem 1.2rem;
+        font-weight: 500;
+        box-shadow: 0 .35rem 1rem rgba(0, 0, 0, 0.35);
+    }
+
+    .card-img-top.thumb-fixed {
+        height: 200px;
+        object-fit: cover;
+    }
+
+    @@media (max-width: 576px) {
+        .card-img-top.thumb-fixed {
+            height: 180px;
+        }
+    }
+
+    .hover-shadow:hover {
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+        transition: box-shadow .2s, transform .2s;
+        transform: translateY(-2px);
+    }
+</style>
+

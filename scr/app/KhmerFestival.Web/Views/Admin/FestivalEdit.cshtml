@@ -1,0 +1,184 @@
+﻿@using KhmerFestival.Web.Models
+@model Festival
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = Model.FestivalId == 0 ? "Thêm lễ hội" : "Cập nhật lễ hội";
+
+    var locations = ViewBag.Locations as System.Collections.Generic.List<Location>;
+
+    var currentImageUrl = string.IsNullOrEmpty(Model.ThumbnailUrl)
+        ? "/images/placeholders/festival-default.jpg"
+        : Model.ThumbnailUrl;
+}
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <strong><i class="fas fa-gopuram mr-1"></i> @ViewData["Title"]</strong>
+
+        @if (Model.FestivalId != 0)
+        {
+            <span class="badge badge-light">
+                ID: @Model.FestivalId
+            </span>
+        }
+    </div>
+
+    <div class="card-body">
+        <!-- NHỚ enctype để upload file -->
+        <form asp-action="FestivalEdit" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input asp-for="FestivalId" type="hidden" />
+
+            <div class="row">
+                <!-- Cột trái: thông tin cơ bản -->
+                <div class="col-lg-8">
+                    <div class="form-row">
+                        <div class="form-group col-md-8">
+                            <label asp-for="Name"></label>
+                            <input asp-for="Name" class="form-control" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group col-md-4">
+                            <label asp-for="Slug">Slug (URL)</label>
+                            <input asp-for="Slug" class="form-control" />
+                            <small class="text-muted">Ví dụ: chol-chnam-thmay</small>
+                            <span asp-validation-for="Slug" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Địa điểm</label>
+                        <select asp-for="LocationId" class="form-control">
+                            <option value="">-- Chọn địa điểm --</option>
+                            @if (locations != null)
+                            {
+                                foreach (var loc in locations)
+                                {
+                                    <option value="@loc.LocationId">@loc.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label asp-for="StartDate">Ngày bắt đầu</label>
+                            <input asp-for="StartDate" type="date" class="form-control" />
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label asp-for="EndDate">Ngày kết thúc</label>
+                            <input asp-for="EndDate" type="date" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="ShortDescription">Mô tả ngắn</label>
+                        <textarea asp-for="ShortDescription" class="form-control" rows="2"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Meaning">Ý nghĩa lễ hội</label>
+                        <textarea asp-for="Meaning" class="form-control" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Content">Nội dung chi tiết</label>
+                        <textarea asp-for="Content" class="form-control" rows="6"></textarea>
+                    </div>
+                </div>
+
+                <!-- Cột phải: ảnh + trạng thái -->
+                <div class="col-lg-4">
+                    <div class="border rounded p-3 mb-3">
+                        <h5 class="mb-3">Ảnh lễ hội</h5>
+
+                        <!-- bind ThumbnailUrl về DB -->
+                        <input asp-for="ThumbnailUrl" type="hidden" />
+
+                        <div class="text-center mb-3">
+                            <img id="festivalImagePreview"
+                                 src="@currentImageUrl"
+                                 alt="Ảnh lễ hội"
+                                 class="img-fluid rounded shadow-sm"
+                                 style="max-height: 220px; object-fit: cover;" />
+                        </div>
+
+                        <div class="custom-file mb-2">
+                            <input type="file"
+                                   class="custom-file-input"
+                                   id="festivalImageFile"
+                                   name="festivalImageFile"
+                                   accept="image/*">
+                            <label class="custom-file-label" for="festivalImageFile">
+                                Chọn ảnh...
+                            </label>
+                        </div>
+                        <small class="form-text text-muted">
+                            Ảnh sẽ được upload lên server và đường dẫn lưu vào <code>ThumbnailUrl</code>.
+                        </small>
+                    </div>
+
+                    <div class="border rounded p-3">
+                        <h5 class="mb-3">Hiển thị</h5>
+
+                        <div class="custom-control custom-switch mb-3">
+                            <input asp-for="IsFeatured"
+                                   type="checkbox"
+                                   class="custom-control-input"
+                                   id="IsFeaturedSwitch" />
+                            <label class="custom-control-label" for="IsFeaturedSwitch">
+                                Lễ hội nổi bật (hiển thị ở trang chủ)
+                            </label>
+                        </div>
+
+                        <div class="form-group mb-0">
+                            <label asp-for="Status">Trạng thái</label>
+                            <select asp-for="Status" class="form-control">
+                                <option value="1">Hiển thị</option>
+                                <option value="0">Ẩn</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr />
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save mr-1"></i> Lưu
+            </button>
+            <a asp-action="FestivalList" class="btn btn-secondary">
+                <i class="fas fa-arrow-left mr-1"></i> Quay lại
+            </a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (function () {
+            const fileInput = document.getElementById('festivalImageFile');
+            const preview = document.getElementById('festivalImagePreview');
+            const label = document.querySelector('label[for="festivalImageFile"].custom-file-label');
+
+            if (!fileInput || !preview) return;
+
+            fileInput.addEventListener('change', function () {
+                const file = this.files[0];
+                if (!file) return;
+
+                if (label) label.textContent = file.name;
+
+                const reader = new FileReader();
+                reader.onload = function (ev) {
+                    preview.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        })();
+    </script>
+}

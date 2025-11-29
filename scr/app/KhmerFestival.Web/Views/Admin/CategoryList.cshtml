@@ -1,0 +1,54 @@
+﻿@model IEnumerable<KhmerFestival.Web.Models.Category>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý danh mục";
+}
+
+<div class="d-flex justify-content-between mb-3">
+    <h5 class="mb-0">Danh sách danh mục bài viết</h5>
+    <a asp-action="CategoryEdit" class="btn btn-sm btn-primary">
+        <i class="fas fa-plus mr-1"></i> Thêm danh mục
+    </a>
+</div>
+
+<table class="table table-bordered table-sm table-hover bg-white">
+    <thead class="thead-light">
+        <tr>
+            <th>#</th>
+            <th>Tên danh mục</th>
+            <th>Slug</th>
+            <th>Danh mục cha</th>
+            <th style="width: 140px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            var index = 1;
+        }
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@index</td>
+                <td>@item.Name</td>
+                <td>@item.Slug</td>
+                <td>@item.ParentCategory?.Name</td>
+                <td class="text-right">
+                    <a asp-action="CategoryEdit" asp-route-id="@item.CategoryId"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <form asp-action="CategoryDelete" asp-route-id="@item.CategoryId"
+                          method="post" class="d-inline"
+                          onsubmit="return confirm('Xóa danh mục này?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            index++;
+        }
+    </tbody>
+</table>

@@ -1,0 +1,61 @@
+﻿@model IEnumerable<KhmerFestival.Web.Models.Account>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý tài khoản";
+}
+
+<h2>Quản lý tài khoản</h2>
+
+<a class="btn btn-success mb-3" asp-action="AccountEdit">Thêm tài khoản</a>
+
+<table class="table table-bordered table-hover">
+    <thead class="thead-dark">
+        <tr>
+            <th>ID</th>
+            <th>Email</th>
+            <th>Họ tên</th>
+            <th>Số điện thoại</th>
+            <th>Trạng thái</th>
+            <th>Ngày tạo</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var acc in Model)
+        {
+            <tr>
+                <td>@acc.AccountId</td>
+                <td>@acc.Email</td>
+                <td>@acc.FullName</td>
+                <td>@acc.Phone</td>
+                <td>
+                    @if (acc.IsActive)
+                    {
+                        <span class="badge badge-success">Đang hoạt động</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-secondary">Khóa</span>
+                    }
+                </td>
+                <td>@acc.CreatedAtUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>
+                    <a class="btn btn-sm btn-primary"
+                       asp-action="AccountEdit"
+                       asp-route-id="@acc.AccountId">
+                        Sửa
+                    </a>
+
+                    <form asp-action="AccountDelete"
+                          asp-route-id="@acc.AccountId"
+                          method="post"
+                          class="d-inline"
+                          onsubmit="return confirm('Xóa tài khoản @acc.Email ?');">
+                        <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

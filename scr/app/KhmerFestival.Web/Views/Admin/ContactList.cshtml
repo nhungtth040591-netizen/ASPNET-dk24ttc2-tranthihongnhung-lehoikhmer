@@ -1,0 +1,54 @@
+﻿@model IEnumerable<KhmerFestival.Web.Models.Contact>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý liên hệ";
+}
+
+<h5 class="mb-3">Danh sách liên hệ</h5>
+
+<table class="table table-bordered table-sm table-hover bg-white">
+    <thead class="thead-light">
+        <tr>
+            <th>#</th>
+            <th>Họ tên</th>
+            <th>Email</th>
+            <th>Chủ đề</th>
+            <th>Ngày gửi</th>
+            <th>Trạng thái</th>
+            <th style="width: 120px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            var index = 1;
+        }
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@index</td>
+                <td>@item.FullName</td>
+                <td>@item.Email</td>
+                <td>@item.Subject</td>
+                <td>@item.CreatedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                <td>
+                    @if (item.Status == 0)
+                    {
+                        <span class="badge badge-warning">Mới</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-success">Đã xử lý</span>
+                    }
+                </td>
+                <td class="text-right">
+                    <a asp-action="ContactDetail" asp-route-id="@item.ContactId"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                </td>
+            </tr>
+            index++;
+        }
+    </tbody>
+</table>

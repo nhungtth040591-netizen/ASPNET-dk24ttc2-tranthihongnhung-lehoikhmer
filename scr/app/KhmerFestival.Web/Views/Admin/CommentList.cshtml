@@ -1,0 +1,102 @@
+﻿@model IEnumerable<KhmerFestival.Web.Models.Comment>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý bình luận";
+    var index = 1;
+}
+
+<h5 class="mb-3">Danh sách bình luận</h5>
+
+<table class="table table-bordered table-sm table-hover bg-white">
+    <thead class="thead-light">
+        <tr>
+            <th>#</th>
+            <th>Bài viết</th>
+            <th>Người gửi</th>
+            <th>Nội dung</th>
+            <th>Thời gian</th>
+            <th>Trạng thái</th>
+            <th style="width: 180px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null)
+        {
+            foreach (var item in Model)
+            {
+                <tr>
+                    <td>@index</td>
+                    <td>@item.Article?.Title</td>
+                    <td>
+                        @if (item.Account != null)
+                        {
+                            @($"{item.Account.FullName} ({item.Account.Email})")
+                        }
+                        else
+                        {
+                            @($"{item.FullName} ({item.Email})")
+                        }
+                    </td>
+                    <td>@item.Content</td>
+                    <td>@item.CreatedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>
+                        @if (item.Status == 0)
+                        {
+                            <span class="badge badge-warning">Chờ duyệt</span>
+                        }
+                        else if (item.Status == 1)
+                        {
+                            <span class="badge badge-success">Đã duyệt</span>
+                        }
+                        else if (item.Status == 2)
+                        {
+                            <span class="badge badge-danger">Từ chối</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-secondary">Không rõ</span>
+                        }
+                    </td>
+                    <td class="text-right">
+                        @* Duyệt *@
+                        @if (item.Status != 1)
+                        {
+                            <form asp-action="CommentApprove" asp-route-id="@item.CommentId"
+                                  method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </form>
+                        }
+
+                        @* Từ chối *@
+                        @if (item.Status != 2)
+                        {
+                            <form asp-action="CommentReject" asp-route-id="@item.CommentId"
+                                  method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-warning">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </form>
+                        }
+
+                        @* Xóa *@
+                        <form asp-action="CommentDelete" asp-route-id="@item.CommentId"
+                              method="post" class="d-inline"
+                              onsubmit="return confirm('Xóa bình luận này?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+
+                index++;
+            }
+        }
+    </tbody>
+</table>

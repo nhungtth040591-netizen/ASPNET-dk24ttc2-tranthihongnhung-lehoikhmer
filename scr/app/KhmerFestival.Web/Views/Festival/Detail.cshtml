@@ -1,0 +1,136 @@
+﻿@using KhmerFestival.Web.Models
+@model Festival
+
+@{
+    ViewData["Title"] = Model?.Name ?? "Chi tiết lễ hội";
+
+    string timeText;
+    if (Model.StartDate.HasValue && Model.EndDate.HasValue)
+    {
+        if (Model.StartDate.Value.Date == Model.EndDate.Value.Date)
+        {
+            timeText = Model.StartDate.Value.ToString("dd/MM/yyyy");
+        }
+        else
+        {
+            timeText = $"{Model.StartDate.Value:dd/MM/yyyy} - {Model.EndDate.Value:dd/MM/yyyy}";
+        }
+    }
+    else if (Model.StartDate.HasValue)
+    {
+        timeText = Model.StartDate.Value.ToString("dd/MM/yyyy");
+    }
+    else
+    {
+        timeText = "Chưa rõ thời gian tổ chức";
+    }
+
+    var thumb = string.IsNullOrEmpty(Model.ThumbnailUrl)
+        ? "/images/placeholders/festival-default.jpg"
+        : Model.ThumbnailUrl;
+}
+
+<div class="row my-4">
+    <div class="col-12 mb-3">
+        <a asp-controller="Festival" asp-action="Index" class="btn btn-light border">
+            <i class="fas fa-arrow-left"></i> Quay lại danh sách lễ hội
+        </a>
+    </div>
+
+    <div class="col-lg-8 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h1 class="h3 mb-3">@Model.Name</h1>
+
+                <p class="text-muted small mb-3">
+                    <i class="fas fa-calendar-alt mr-1"></i>
+                    @timeText
+
+                    @if (Model.Location != null)
+                    {
+                        <span class="ml-2">
+                            <i class="fas fa-map-marker-alt mr-1"></i>
+                            @Model.Location.Name
+                        </span>
+                    }
+                </p>
+
+                @* Mô tả ngắn *@
+                @if (!string.IsNullOrEmpty(Model.ShortDescription))
+                {
+                    <p class="lead">
+                        @Model.ShortDescription
+                    </p>
+                }
+
+                @* Ý nghĩa lễ hội *@
+                @if (!string.IsNullOrEmpty(Model.Meaning))
+                {
+                    <div class="mb-4">
+                        <h5 class="mb-2">Ý nghĩa lễ hội</h5>
+                        <p>@Model.Meaning</p>
+                    </div>
+                }
+
+                @* Nội dung chi tiết *@
+                @if (!string.IsNullOrEmpty(Model.Content))
+                {
+                    <div class="mb-3">
+                        <h5 class="mb-2">Giới thiệu chi tiết</h5>
+                        <div class="festival-content">
+                            @Html.Raw(Model.Content)
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <p>Thông tin chi tiết đang được cập nhật.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mb-4">
+        <div class="card border-0 shadow-sm mb-3">
+            <img src="@thumb"
+                 alt="@Model.Name"
+                 class="card-img-top"
+                 style="height: 220px; object-fit: cover;" />
+            <div class="card-body">
+                <h5 class="card-title mb-2">Ảnh lễ hội</h5>
+                <p class="small text-muted mb-0">
+                    Hình ảnh minh hoạ cho lễ hội. Có thể thay đổi từ khu vực quản trị.
+                </p>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-2">Thông tin thêm</h5>
+                <p class="mb-1">
+                    <strong>Trạng thái:</strong>
+                    @(Model.Status == 1 ? "Đang hiển thị" : "Đang ẩn")
+                </p>
+                <p class="mb-1">
+                    <strong>Lễ hội nổi bật:</strong>
+                    @(Model.IsFeatured ? "Có" : "Không")
+                </p>
+                <p class="mb-1 small text-muted">
+                    Tạo lúc: @Model.CreatedAtUtc.ToString("dd/MM/yyyy HH:mm")
+                    @if (Model.UpdatedAtUtc.HasValue)
+                    {
+                        <br />
+                        <span>Cập nhật: @Model.UpdatedAtUtc.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                    }
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .festival-content img {
+        max-width: 100%;
+        height: auto;
+    }
+</style>

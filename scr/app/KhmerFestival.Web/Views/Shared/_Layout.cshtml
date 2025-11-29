@@ -1,48 +1,231 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@using System
+@using System.Linq
+@inject KhmerFestival.Web.Models.ApplicationDbContext Db
+
+@{
+    // Lấy cấu hình hệ thống (key-value)
+    var siteNameConfig = Db.SystemConfigs.FirstOrDefault(c => c.ConfigKey == "SiteName");
+    var phoneConfig = Db.SystemConfigs.FirstOrDefault(c => c.ConfigKey == "ContactPhone");
+    var emailConfig = Db.SystemConfigs.FirstOrDefault(c => c.ConfigKey == "ContactEmail");
+    var addressConfig = Db.SystemConfigs.FirstOrDefault(c => c.ConfigKey == "ContactAddress");
+
+    var siteName = siteNameConfig?.ConfigValue ?? "Website Lễ hội Khmer";
+    var contactPhone = phoneConfig?.ConfigValue ?? "0123 456 789";
+    var contactEmail = emailConfig?.ConfigValue ?? "contact@khmerfestival.local";
+    var contactAddress = addressConfig?.ConfigValue ?? "Một địa điểm tại Trà Vinh / Sóc Trăng...";
+}
+
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - KhmerFestival.Web</title>
+    <title>@ViewData["Title"] - @siteName</title>
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+
+    <style>
+        /* Menu hover + active */
+        .navbar-nav .nav-link {
+            position: relative;
+            padding-bottom: .25rem;
+            transition: color .2s ease;
+        }
+
+            .navbar-nav .nav-link::after {
+                content: "";
+                position: absolute;
+                left: 0;
+                bottom: 0;
+                width: 0;
+                height: 2px;
+                background-color: #007bff;
+                transition: width .2s ease;
+            }
+
+            .navbar-nav .nav-link:hover {
+                color: #007bff !important;
+            }
+
+                .navbar-nav .nav-link:hover::after,
+                .navbar-nav .nav-link.active::after {
+                    width: 100%;
+                }
+
+        /* Footer styles */
+        footer {
+            font-size: 0.95rem;
+        }
+
+            footer h5 {
+                font-size: 1rem;
+                text-transform: uppercase;
+                letter-spacing: .04em;
+            }
+
+            footer a.text-footer-link {
+                color: #ffffffcc;
+                text-decoration: none;
+            }
+
+                footer a.text-footer-link:hover {
+                    color: #ffffff;
+                    text-decoration: underline;
+                }
+    </style>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">KhmerFestival.Web</a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                <a class="navbar-brand font-weight-bold" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-spa"></i> @siteName
+                </a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse"
+                        data-target="#navbarNav" aria-controls="navbarNav"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav mr-auto">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home"
+                                                                               && ViewContext.RouteData.Values["action"]?.ToString() == "Index"
+                                                                               ? "active" : "")"
+                               asp-area="" asp-controller="Home" asp-action="Index">
+                                Trang chủ
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Festival"
+                                                                               ? "active" : "")"
+                               asp-area="" asp-controller="Festival" asp-action="Index">
+                                Lễ hội
+                            </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Article"
+                                                                               ? "active" : "")"
+                               asp-area="" asp-controller="Article" asp-action="Index">
+                                Bài viết
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Location"
+                                                                               ? "active" : "")"
+                               asp-area="" asp-controller="Location" asp-action="Index">
+                                Địa điểm
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Contact"
+                                                                               && ViewContext.RouteData.Values["action"]?.ToString() == "Index"
+                                                                               ? "active" : "")"
+                               asp-area="" asp-controller="Contact" asp-action="Index">
+                                Liên hệ
+                            </a>
+                        </li>                  
                     </ul>
+
+                    <form class="form-inline my-2 my-lg-0" method="get" asp-controller="Festival" asp-action="Index">
+                        <input class="form-control mr-sm-2" type="search"
+                               placeholder="Tìm lễ hội hoặc bài viết..."
+                               aria-label="Search" name="q"
+                               value="@Context.Request.Query["q"]">
+                        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
                 </div>
             </div>
         </nav>
     </header>
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - KhmerFestival.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="bg-dark text-white mt-5">
+        <div class="container py-4">
+            <div class="row">
+                <!-- Cột 1: Thông tin website -->
+                <div class="col-md-4 mb-3">
+                    <h5>@siteName</h5>
+                    <p class="mb-1">
+                        <i class="fas fa-map-marker-alt mr-2"></i>
+                        @contactAddress
+                    </p>
+                    <p class="mb-1">
+                        <i class="fas fa-phone-alt mr-2"></i>
+                        <a href="tel:@contactPhone" class="text-footer-link">@contactPhone</a>
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-envelope mr-2"></i>
+                        <a href="mailto:@contactEmail" class="text-footer-link">
+                            @contactEmail
+                        </a>
+                    </p>
+                </div>
+
+                <!-- Cột 2: Liên kết nhanh -->
+                <div class="col-md-4 mb-3">
+                    <h5>Liên kết nhanh</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li>
+                            <a asp-controller="Festival" asp-action="Index" class="text-footer-link">
+                                Danh sách lễ hội
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Article" asp-action="Index" class="text-footer-link">
+                                Bài viết nổi bật
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Location" asp-action="Index" class="text-footer-link">
+                                Địa điểm tham quan
+                            </a>
+                        </li>                     
+                    </ul>
+                </div>
+
+                <!-- Cột 3: Giới thiệu -->
+                <div class="col-md-4 mb-3">
+                    <h5>Về dự án</h5>
+                    <p class="mb-2">
+                        Website nhằm giới thiệu, lưu giữ và lan tỏa nét đẹp văn hoá
+                        lễ hội của đồng bào Khmer Nam Bộ.
+                    </p>
+                    <p class="mb-0 small">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Nếu bạn có thêm tư liệu, hình ảnh hoặc đóng góp nội dung,
+                        hãy liên hệ với chúng tôi qua trang Liên hệ.
+                    </p>
+                </div>
+            </div>
+
+            <hr class="border-secondary" />
+
+            <div class="row">
+                <div class="col-md-6 text-center text-md-left small">
+                    &copy; @DateTime.Now.Year @siteName. Tất cả các quyền được bảo lưu.
+                </div>
+                <div class="col-md-6 text-center text-md-right small">
+                    Phát triển trong khuôn khổ đề tài / đồ án về văn hoá lễ hội Khmer.
+                </div>
+            </div>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

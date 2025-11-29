@@ -1,0 +1,59 @@
+﻿@model KhmerFestival.Web.Models.Contact
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Chi tiết liên hệ";
+}
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Chi tiết liên hệ</strong>
+        @if (Model.Status == 0)
+        {
+            <form asp-action="ContactMarkProcessed" asp-route-id="@Model.ContactId" method="post" class="mb-0">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-sm btn-success">
+                    <i class="fas fa-check mr-1"></i> Đánh dấu đã xử lý
+                </button>
+            </form>
+        }
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Họ tên</dt>
+            <dd class="col-sm-9">@Model.FullName</dd>
+
+            <dt class="col-sm-3">Email</dt>
+            <dd class="col-sm-9">@Model.Email</dd>
+
+            <dt class="col-sm-3">Chủ đề</dt>
+            <dd class="col-sm-9">@Model.Subject</dd>
+
+            <dt class="col-sm-3">Nội dung</dt>
+            <dd class="col-sm-9">@Model.Message</dd>
+
+            <dt class="col-sm-3">Ngày gửi</dt>
+            <dd class="col-sm-9">@Model.CreatedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</dd>
+
+            <dt class="col-sm-3">Trạng thái</dt>
+            <dd class="col-sm-9">
+                @if (Model.Status == 0)
+                {
+                    <span class="badge badge-warning">Mới</span>
+                }
+                else
+                {
+                    <span class="badge badge-success">Đã xử lý</span>
+                    @if (Model.ProcessedAtUtc.HasValue)
+                    {
+                        <span class="text-muted small ml-2">
+                            (Lúc: @Model.ProcessedAtUtc.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                        </span>
+                    }
+                }
+            </dd>
+        </dl>
+
+        <a asp-action="ContactList" class="btn btn-secondary">Quay lại danh sách</a>
+    </div>
+</div>

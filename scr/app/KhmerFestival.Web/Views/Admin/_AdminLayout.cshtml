@@ -1,0 +1,212 @@
+﻿@using System.Linq
+@inject KhmerFestival.Web.Models.ApplicationDbContext Db
+
+@{
+    Layout = null;
+
+    // Lấy tên site từ SystemConfigs
+    var siteNameConfig = Db.SystemConfigs.FirstOrDefault(c => c.ConfigKey == "SiteName");
+    var siteName = siteNameConfig?.ConfigValue ?? "Website Lễ Hội Khmer";
+
+    string currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin - @siteName</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+
+        .sidebar {
+            min-height: 100vh;
+            background: #343a40;
+            color: #fff;
+        }
+
+            .sidebar .nav-link {
+                color: #fff;
+                padding: 0.55rem 1rem;
+                font-size: 0.95rem;
+            }
+
+                .sidebar .nav-link i {
+                    width: 18px;
+                }
+
+                .sidebar .nav-link.active,
+                .sidebar .nav-link:hover {
+                    background: #495057;
+                    color: #ffc107;
+                }
+
+            .sidebar .sidebar-header {
+                font-size: 1.15rem;
+                font-weight: bold;
+                padding: 1rem;
+                border-bottom: 1px solid #495057;
+            }
+
+            .sidebar .site-name {
+                font-size: 0.85rem;
+                font-weight: normal;
+                color: #ced4da;
+            }
+
+        .top-bar {
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: .75rem;
+            margin-bottom: 1.25rem;
+        }
+
+            .top-bar h1 {
+                font-size: 1.35rem;
+                margin: 0;
+            }
+
+            .top-bar small {
+                color: #6c757d;
+            }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-none d-md-block sidebar">
+                <div class="sidebar-header text-center">
+                    <i class="fas fa-cogs"></i> Admin Panel
+                    <div class="mt-2 site-name">
+                        @siteName
+                    </div>
+                </div>
+                <ul class="nav flex-column mt-3">
+
+                    <!-- Trang người dùng (trên Dashboard, mở tab mới) -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="/" target="_blank" rel="noopener">
+                            <i class="fas fa-home mr-2"></i> Trang người dùng
+                        </a>
+                    </li>
+
+                    <!-- Dashboard -->
+                    <li class="nav-item">
+                        <a class="nav-link @(currentAction == "Dashboard" ? "active" : "")"
+                           href="/admin/dashboard">
+                            <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+                        </a>
+                    </li>
+
+                    <!-- Lễ hội -->
+                    <li class="nav-item">
+                        <a class="nav-link @(currentAction.Contains("Festival") ? "active" : "")"
+                           href="/admin/festivallist">
+                            <i class="fas fa-flag mr-2"></i> Quản lý lễ hội
+                        </a>
+                    </li>
+
+                    <!-- Bài viết -->
+                    <li class="nav-item">
+                        <a class="nav-link @(currentAction.Contains("Article") ? "active" : "")"
+                           href="/admin/articlelist">
+                            <i class="fas fa-newspaper mr-2"></i> Quản lý bài viết
+                        </a>
+                    </li>
+
+                    <!-- Danh mục bài viết -->
+                    <li class="nav-item">
+                        <a class="nav-link @(currentAction.Contains("Category") ? "active" : "")"
+                           href="/admin/categorylist">
+                            <i class="fas fa-folder-open mr-2"></i> Quản lý danh mục
+                        </a>
+                    </li>
+
+                    <!-- Địa điểm -->
+                    <li class="nav-item">
+                        <a class="nav-link @(currentAction.Contains("Location") ? "active" : "")"
+                           href="/admin/locationlist">
+                            <i class="fas fa-map-marker-alt mr-2"></i> Quản lý địa điểm
+                        </a>
+                    </li>
+
+                    <!-- Liên hệ -->
+                    <li class="nav-item">
+                        <a class="nav-link @(currentAction.Contains("Contact") ? "active" : "")"
+                           href="/admin/contactlist">
+                            <i class="fas fa-envelope-open-text mr-2"></i> Quản lý liên hệ
+                        </a>
+                    </li>
+
+                    <!-- Bình luận -->
+                    <li class="nav-item">
+                        <a class="nav-link @(currentAction.Contains("Comment") ? "active" : "")"
+                           href="/admin/commentlist">
+                            <i class="fas fa-comments mr-2"></i> Quản lý bình luận
+                        </a>
+                    </li>
+
+                    <!-- Cấu hình hệ thống -->
+                    <li class="nav-item">
+                        <a class="nav-link @(currentAction.Contains("Config") ? "active" : "")"
+                           href="/admin/configedit">
+                            <i class="fas fa-sliders-h mr-2"></i> Cấu hình hệ thống
+                        </a>
+                    </li>
+
+                    <!-- Logout ở cuối -->
+                    <li class="nav-item mt-4">
+                        <a class="nav-link" href="/account/logout">
+                            <i class="fas fa-sign-out-alt mr-2"></i> Đăng xuất
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Main content -->
+            <main role="main" class="col-md-10 ml-sm-auto px-4 py-4">
+                <div class="top-bar d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h5 mb-0">@ViewData["Title"]</h1>
+                        <small class="text-muted">Khu vực quản trị - @siteName</small>
+                    </div>
+                    <div>
+                        <!-- Sau này có login thì hiện tên admin ở đây -->
+                        <span class="text-muted small"><i class="fas fa-user-shield"></i> Admin</span>
+                    </div>
+                </div>
+
+                @if (TempData["Message"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Message"]
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                }
+
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

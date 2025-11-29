@@ -1,0 +1,85 @@
+﻿@model IEnumerable<dynamic>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý lễ hội";
+}
+
+<div class="d-flex justify-content-between mb-3">
+    <h5 class="mb-0">Danh sách lễ hội</h5>
+    <a asp-action="FestivalEdit" class="btn btn-sm btn-primary">
+        <i class="fas fa-plus mr-1"></i> Thêm lễ hội
+    </a>
+</div>
+
+<table class="table table-bordered table-sm table-hover bg-white">
+    <thead class="thead-light">
+        <tr>
+            <th>#</th>
+            <th>Tên lễ hội</th>
+            <th>Địa điểm</th>
+            <th>Thời gian</th>
+            <th>Nổi bật</th>
+            <th>Trạng thái</th>
+            <th style="width: 140px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            var index = 1;
+        }
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@index</td>
+                <td>@item.Name</td>
+                <td>@(item.Location != null ? item.Location.Name : "")</td>
+                <td>
+                    @if (item.StartDate != null)
+                    {
+                        @(((DateTime)item.StartDate).ToString("dd/MM/yyyy"))
+                        if (item.EndDate != null && item.EndDate != item.StartDate)
+                        {
+                            @(" - " + ((DateTime)item.EndDate).ToString("dd/MM/yyyy"))
+                        }
+                    }
+                    else
+                    {
+                        <span class="text-muted">Chưa rõ</span>
+                    }
+                </td>
+                <td>
+                    @if ((bool)item.IsFeatured)
+                    {
+                        <span class="badge badge-warning">Featured</span>
+                    }
+                </td>
+                <td>
+                    @if ((byte)item.Status == 1)
+                    {
+                        <span class="badge badge-success">Hiển thị</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-secondary">Ẩn</span>
+                    }
+                </td>
+                <td class="text-right">
+                    <a asp-action="FestivalEdit" asp-route-id="@item.FestivalId"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <form asp-action="FestivalDelete" asp-route-id="@item.FestivalId"
+                          method="post" class="d-inline"
+                          onsubmit="return confirm('Xóa lễ hội này?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            index++;
+        }
+    </tbody>
+</table>

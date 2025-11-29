@@ -1,0 +1,185 @@
+﻿@using KhmerFestival.Web.Models
+@model Article
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = Model.ArticleId == 0 ? "Thêm bài viết" : "Cập nhật bài viết";
+
+    var categories = ViewBag.Categories as System.Collections.Generic.List<Category>;
+    var festivals = ViewBag.Festivals as System.Collections.Generic.List<Festival>;
+
+    var currentThumb = string.IsNullOrEmpty(Model.ThumbnailUrl)
+        ? "/images/placeholders/article-default.jpg"
+        : Model.ThumbnailUrl;
+}
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <strong><i class="fas fa-file-alt mr-1"></i> @ViewData["Title"]</strong>
+
+        @if (Model.ArticleId != 0)
+        {
+            <span class="badge badge-light">
+                ID: @Model.ArticleId
+            </span>
+        }
+    </div>
+
+    <div class="card-body">
+        <!--upload file -->
+        <form asp-action="ArticleEdit" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input asp-for="ArticleId" type="hidden" />
+
+            <div class="row">
+                <!-- Cột trái: thông tin bài viết -->
+                <div class="col-lg-8">
+                    <div class="form-row">
+                        <div class="form-group col-md-8">
+                            <label asp-for="Title"></label>
+                            <input asp-for="Title" class="form-control" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group col-md-4">
+                            <label asp-for="Slug">Slug (URL)</label>
+                            <input asp-for="Slug" class="form-control" />
+                            <small class="text-muted">Ví dụ: gioi-thieu-chol-chnam-thmay</small>
+                            <span asp-validation-for="Slug" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Summary">Tóm tắt</label>
+                        <textarea asp-for="Summary" class="form-control" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Content">Nội dung</label>
+                        <textarea asp-for="Content" class="form-control" rows="8"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <!-- Danh mục -->
+                        <div class="form-group col-md-6">
+                            <label>Danh mục</label>
+                            <select asp-for="CategoryId" class="form-control">
+                                <option value="">-- Chọn danh mục --</option>
+                                @if (categories != null)
+                                {
+                                    foreach (var cat in categories)
+                                    {
+                                        <option value="@cat.CategoryId">@cat.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Lễ hội liên quan -->
+                        <div class="form-group col-md-6">
+                            <label>Lễ hội liên quan</label>
+                            <select asp-for="FestivalId" class="form-control">
+                                <option value="">-- Không --</option>
+                                @if (festivals != null)
+                                {
+                                    foreach (var f in festivals)
+                                    {
+                                        <option value="@f.FestivalId">@f.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cột phải: thumbnail + trạng thái -->
+                <div class="col-lg-4">
+                    <div class="border rounded p-3 mb-3">
+                        <h5 class="mb-3">Ảnh thumbnail</h5>
+
+                        <!-- ThumbnailUrl-->
+                        <input asp-for="ThumbnailUrl" type="hidden" />
+
+                        <div class="mb-2 text-center">
+                            <img id="thumbPreview"
+                                 src="@currentThumb"
+                                 alt="Thumbnail"
+                                 class="img-fluid rounded shadow-sm"
+                                 style="max-height: 220px; object-fit: cover;" />
+                        </div>
+
+                        <div class="custom-file mb-2">
+                            <input type="file"
+                                   class="custom-file-input"
+                                   id="thumbnailFile"
+                                   name="thumbnailFile"
+                                   accept="image/*">
+                            <label class="custom-file-label" for="thumbnailFile">
+                                Chọn ảnh...
+                            </label>
+                        </div>
+                        <small class="form-text text-muted">
+                            Chấp nhận file ảnh (jpg, png, ...). Ảnh upload lên server, đường dẫn lưu vào
+                            <code>ThumbnailUrl</code>.
+                        </small>
+                    </div>
+
+                    <div class="border rounded p-3">
+                        <h5 class="mb-3">Hiển thị</h5>
+
+                        <div class="form-group">
+                            <label asp-for="PublishedDate">Ngày đăng</label>
+                            <input asp-for="PublishedDate" type="date" class="form-control" />
+                        </div>
+
+                        <div class="custom-control custom-switch mt-2">
+                            <input asp-for="IsPublished"
+                                   type="checkbox"
+                                   class="custom-control-input"
+                                   id="IsPublishedSwitch" />
+                            <label class="custom-control-label" for="IsPublishedSwitch">
+                                Đã xuất bản
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr />
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save mr-1"></i> Lưu
+            </button>
+            <a asp-action="ArticleList" class="btn btn-secondary">
+                <i class="fas fa-arrow-left mr-1"></i> Quay lại
+            </a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (function () {
+            const fileInput = document.getElementById('thumbnailFile');
+            const preview = document.getElementById('thumbPreview');
+            const label = document.querySelector('label[for="thumbnailFile"].custom-file-label');
+
+            if (!fileInput || !preview) return;
+
+            fileInput.addEventListener('change', function () {
+                const file = this.files[0];
+                if (!file) return;
+
+                if (label) label.textContent = file.name;
+
+                const reader = new FileReader();
+                reader.onload = function (ev) {
+                    preview.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        })();
+    </script>
+}
